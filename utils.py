@@ -306,6 +306,7 @@ def computeAllocatableCapacity(cluster, app_name, namespace):
 
     return allocatable_resources_per_node
 
+###### modi here
 def compute_available_resources(cluster):
 
     total_allocatable_cpu = 0
@@ -369,6 +370,8 @@ def compute_available_resources(cluster):
         print("Connection timeout after " + str(timeout) + " seconds on cluster " + cluster)
     return available_cpu, available_memory, available_resources_per_node
 
+
+### no change because it is test the resources is enough for the app or not. All nodes are the same size.
 def getPerNodeResources(cluster):
 
     perNodeCPU = 0
@@ -533,7 +536,7 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
     print("Fog - only clusters .....", fog_only_clusters)
 
     cluster_network_receive = {}
-
+    ### here we do not need to change.
     possible_clusters = []
     for cluster in fog_only_clusters:
         if checkClusterPossibility(cluster, app_cpu_request, app_memory_request) == True:
