@@ -1065,7 +1065,7 @@ def create_fn(body, spec, patch, **kwargs):
         mode = 'create'
         fogapp_locations = getFogAppLocations(fogapp_name, fogpapp_namespace, fogapp_cpu_request, fogapp_memory_request, fogapp_replicas, clusters_qty, placement_policy, mode)
         total_replicas = clusters_qty * fogapp_replicas
-
+        ##檢查資源不夠用
         if len(fogapp_locations) != 0:
             eligible_clusters = []
             for cluster in fogapp_locations:
@@ -1077,7 +1077,7 @@ def create_fn(body, spec, patch, **kwargs):
                     cluster['overflow'] = fogapp_replicas - cluster['max_replicas']
 
             total_overflow = 0
-
+            ###檢查多少超額
             for cluster in fogapp_locations[:clusters_qty]:
                 dict = {}
                 dict['name'] = cluster['name']
@@ -1085,48 +1085,48 @@ def create_fn(body, spec, patch, **kwargs):
                 eligible_clusters.append(dict)
                 total_overflow += cluster['overflow']
 
-            print("Total overflow ...........", total_overflow)
-
-            if total_overflow > 0:
-                for cluster in fogapp_locations[clusters_qty:]:
-                    if cluster['max_replicas'] > total_overflow:
-                        dict = {}
-                        dict['name'] = cluster['name']
-                        dict['replicas'] = total_overflow
-                        total_overflow = 0
-                        eligible_clusters.append(dict)
-                        break
-                    else:
-                        dict = {}
-                        dict['name'] = cluster['name']
-                        dict['replicas'] = cluster['max_replicas']
-                        total_overflow = total_overflow - dict['replicas']
-                        eligible_clusters.append(dict)
-
-            if total_overflow > 0:
-                for cluster in eligible_clusters:
-                    if 'cloud' in cluster['name']:
-                        cluster['replicas'] += total_overflow
-                        total_overflow = 0
+            # print("Total overflow ...........", total_overflow)
+            #假設超額後，能找到一個就好!!!!!
+            # if total_overflow > 0:
+            #     for cluster in fogapp_locations[clusters_qty:]:
+            #         if cluster['max_replicas'] > total_overflow:
+            #             dict = {}
+            #             dict['name'] = cluster['name']
+            #             dict['replicas'] = total_overflow
+            #             total_overflow = 0
+            #             eligible_clusters.append(dict)
+            #             break
+            #         else:
+            #             dict = {}
+            #             dict['name'] = cluster['name']
+            #             dict['replicas'] = cluster['max_replicas']
+            #             total_overflow = total_overflow - dict['replicas']
+            #             eligible_clusters.append(dict)
+            #假設超額後，檢查是否有cloud，有當作雲端夠用，沒有就
+            # if total_overflow > 0:
+            #     for cluster in eligible_clusters:
+            #         if 'cloud' in cluster['name']:
+            #             cluster['replicas'] += total_overflow
+            #             total_overflow = 0
 
             print("Final list of clusters .................", eligible_clusters)
             print("Final overflow .................", total_overflow)
-
-            if total_overflow > 0:
-                dict = {}
-                dict['message'] = 'to_cloud'
-                dict['replicas'] = total_overflow
-                patch.status['message'] = dict
-                raise kopf.TemporaryError("Fog clusters not sufficient to run the app. Provisioning cloud cluster.....................",
-                                          delay=30)
-        else:
-            dict = {}
-            dict['message'] = 'to_cloud'
-            dict['replicas'] = fogapp_replicas
-            patch.status['message'] = dict
-            raise kopf.TemporaryError(
-                "No clusters found at the fog level. Provisioning cloud cluster.....................",
-                delay=30)
+                #假設超額後，檢查是否有cloud
+        #     if total_overflow > 0:
+        #         dict = {}
+        #         dict['message'] = 'to_cloud'
+        #         dict['replicas'] = total_overflow
+        #         patch.status['message'] = dict
+        #         # raise kopf.TemporaryError("Fog clusters not sufficient to run the app. Provisioning cloud cluster.....................",
+        #         #                           delay=30)
+        # else:
+        #     dict = {}
+        #     dict['message'] = 'to_cloud'
+        #     dict['replicas'] = fogapp_replicas
+        #     patch.status['message'] = dict
+            # raise kopf.TemporaryError(
+            #     "No clusters found at the fog level. Provisioning cloud cluster.....................",
+            #     delay=30)
     else:
         input_clusters = spec['locations'].split(",")
         fogapp_locations = []
@@ -1353,9 +1353,9 @@ def create_fn(body, spec, patch, **kwargs):
                             "The application could not be scheduled on the Fog level. Need cloud cluster.",
                             delay=30)
 
-    for cluster in eligible_clusters:
-        if cluster['replicas'] == 0:
-            eligible_clusters.remove(cluster)
+    # for cluster in eligible_clusters:
+    #     if cluster['replicas'] == 0:
+    #         eligible_clusters.remove(cluster)
 
     print("Final list of eligible clusters ...", eligible_clusters)
 

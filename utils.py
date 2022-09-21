@@ -600,6 +600,22 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
 
             sorted_eligible_clusters = sorted(eligible_clusters, key = lambda i: i['ntk_rcv'], reverse=True)
         elif placement_policy == 'worst_fit' or placement_policy == 'worst-fit':
+            for cluster in eligible_clusters:
+                if mode == 'create':
+                    query = "sum(instance:node_network_receive_bytes_excluding_lo:rate1m{cluster_name='" + cluster['name'] + "'})"
+                elif mode == 'update':
+                    query = "sum(irate(container_network_receive_bytes_total{cluster_name='" + cluster['name'] + "', namespace='" + app_namespace + "', pod=~'frontend.*'}[60s]))"
+
+                # Here, we are fetching the values of a particular metric name
+                result = pc.custom_query(query=query)
+
+                #cluster_network_receive[cluster['name']] = float(result[0]['value'][1])
+                if len(result) > 0:
+                    cluster['ntk_rcv'] = float(result[0]['value'][1])
+                else:
+                    cluster['ntk_rcv'] = 0.0
+
+
             sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'], reverse=True)
         elif placement_policy == 'best_fit' or placement_policy == 'best-fit':
             sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'])
