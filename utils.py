@@ -306,6 +306,17 @@ def computeAllocatableCapacity(cluster, app_name, namespace):
 
     return allocatable_resources_per_node
 
+
+def car(cluster):
+    core_v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=cluster))
+    for node in core_v1.list_node(_request_timeout=timeout).items[1:]:
+        node_name      = node.metadata.name
+        allocatable    = node.status.allocatable
+        allocatabale_cpu = Q_(allocatable['cpu']).to('m')
+        allocatable_memory = Q_(allocatable['memory'])
+        total_allocatable_cpu += allocatabale_cpu
+        total_allocatable_memory += allocatable_memory
+
 ###### modi here
 def compute_available_resources(cluster):
 
@@ -495,10 +506,28 @@ def getFogAppLocationsByResource(clusters_qty):
 
     return fogapp_locations
 
+def getclustercpip(cluster):
+    config.load_kube_config()
+    api_instance = client.CoreV1Api(api_client=config.new_client_from_config(context=cluster))
+    #api_instance = kubernetes.client.CoreV1Api()
+    master_ip = ""
+    try:
+        nodes = api_instance.list_node(pretty=True, _request_timeout=timeout)
+        nodes = [node for node in nodes.items if
+                 'node-role.kubernetes.io/master' in node.metadata.labels]
+        # get all addresses of the master
+        addresses = nodes[0].status.addresses
+
+        master_ip = [i.address for i in addresses if i.type == "InternalIP"][0]
+    except:
+        print("Connection timeout after " + str(timeout) + " seconds to host cluster")
+
+    return master_ip
+
 def getControllerMasterIP():
     # TO DO: Specify cluster 0
     config.load_kube_config()
-    #api = client.CoreV1Api(api_client=config.new_client_from_config(context="cluster0"))
+    #api = client.CoreV1Api(api_client=config.new_client_from_config(context=cluster))
     api = client.CoreV1Api()
     master_ip = ""
     try:
@@ -513,6 +542,28 @@ def getControllerMasterIP():
         print("Connection timeout after " + str(timeout) + " seconds to host cluster")
 
     return master_ip
+
+def getresources(mode,cluster):
+    cp=getclustercpip(cluster)
+    prom_host = getControllerMasterIPHere()
+    prom_port = 30090
+    prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
+    pc = PrometheusConnect(url=prom_url, disable_ssl=True)
+    if mode == "CPU" or mode == 'cpu':
+        query="(1-sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[10s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[10s]))by (instance))*100"
+        #print(query)
+        result = pc.custom_query(query=query)
+        if len(result) > 0:
+            for node in result:
+                ip=str(node['metric']['instance']).split(":")
+                if ip[0]!=cp:
+                    print(node)
+                    print(float(node['value'][1]))
+    else:
+        print("Please input cpu or Memory")
+
+
+
 
 def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_request, replicas, clusters_qty, placement_policy, mode):
     master_ip = getControllerMasterIP()
@@ -599,17 +650,12 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             #                           reverse=True))
 
             sorted_eligible_clusters = sorted(eligible_clusters, key = lambda i: i['ntk_rcv'], reverse=True)
+        
         elif placement_policy == 'worst_fit' or placement_policy == 'worst-fit':
             for cluster in eligible_clusters:
                 if mode == 'create':
                     query = "sum(instance:node_network_receive_bytes_excluding_lo:rate1m{cluster_name='" + cluster['name'] + "'})"
-                elif mode == 'update':
-                    query = "sum(irate(container_network_receive_bytes_total{cluster_name='" + cluster['name'] + "', namespace='" + app_namespace + "', pod=~'frontend.*'}[60s]))"
-
-                # Here, we are fetching the values of a particular metric name
                 result = pc.custom_query(query=query)
-
-                #cluster_network_receive[cluster['name']] = float(result[0]['value'][1])
                 if len(result) > 0:
                     cluster['ntk_rcv'] = float(result[0]['value'][1])
                 else:
