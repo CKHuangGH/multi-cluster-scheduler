@@ -209,12 +209,16 @@ def getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_nam
 
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
-    totalAvailableCPU, totalAvailableMemory, available_resources_per_node = compute_available_resources(cluster)
+    #totalAvailableCPU, totalAvailableMemory, available_resources_per_node = compute_available_resources(cluster)
+    node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
 
+    calcprecentage_cpu=app_cpu_request/node_resources_cpu
+    calcprecentage_memory=app_memory_request/node_resources_memory
+    totalidelcpu=
     count = 0
 
-    for node in available_resources_per_node:
-        count += min(math.floor(node['cpu']/app_cpu_request), math.floor(node['memory']/app_memory_request))
+    # for node in available_resources_per_node:
+    #     count += min(math.floor(node['cpu']/app_cpu_request), math.floor(node['memory']/app_memory_request))
 
     return count
 
