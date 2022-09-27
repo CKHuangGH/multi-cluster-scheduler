@@ -115,13 +115,28 @@ def getresources(mode,cluster):
         result = pc.custom_query(query=query)
         if len(result) > 0:
             for node in result:
+                print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
                     total+=float((node['value'][1]))
-                    print(node)
-                    print(float((node['value'][1])))
-                    print(total)
-            print(total)
+                    #print(node)
+                    #print(float((node['value'][1])))
+                    #print(total)
+            #print(total)
+    elif mode == "Memory" or mode == 'memory':
+        query="node_memory_MemFree_bytes{cluster_name=\"" + cluster+ "\"}"
+        print(query)
+        result = pc.custom_query(query=query)
+        if len(result) > 0:
+            for node in result:
+                print(node)
+                ip=str(node['metric']['instance']).split(":")
+                if ip[0]!=cp:
+                    total+=float((node['value'][1]))
+                    #print(node)
+                    #print(float((node['value'][1])))
+                    #print(total)
+            #print(total)
 
     else:
         print("Please input cpu or Memory")
@@ -193,5 +208,6 @@ def compute_available_resources(cluster):
     return available_cpu, available_memory, available_resources_per_node
 
 #print(compute_available_resources("cluster1"))
-getresources("CPU","cluster2")
-print(getPerNodeResources("cluster1"))
+getresources("Memory","cluster2")
+getresources("cpu","cluster2")
+#print(getPerNodeResources("cluster1"))

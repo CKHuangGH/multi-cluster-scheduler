@@ -206,17 +206,80 @@ def getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_nam
 
     return count
 
+def getControllerMasterIPCluster(cluster):
+    config.load_kube_config()
+    api_instance = client.CoreV1Api(api_client=config.new_client_from_config(context=cluster))
+    #api_instance = kubernetes.client.CoreV1Api()
+    master_ip = ""
+    try:
+        nodes = api_instance.list_node(pretty=True, _request_timeout=timeout)
+        nodes = [node for node in nodes.items if
+                 'node-role.kubernetes.io/master' in node.metadata.labels]
+        # get all addresses of the master
+        addresses = nodes[0].status.addresses
+
+        master_ip = [i.address for i in addresses if i.type == "InternalIP"][0]
+    except:
+        print("Connection timeout after " + str(timeouts) + " seconds to host cluster")
+
+    return master_ip
+
+def getresources(mode,cluster):
+    total=0
+    cp=getControllerMasterIPCluster(cluster)
+    #print(cp)
+    prom_host = getControllerMasterIP()
+    prom_port = 30090
+    prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
+    pc = PrometheusConnect(url=prom_url, disable_ssl=True)
+    if mode == "CPU" or mode == 'cpu':
+        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[30s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[30s]))by (instance))*100"
+        #print(query)
+        result = pc.custom_query(query=query)
+        if len(result) > 0:
+            for node in result:
+                #print(node)
+                ip=str(node['metric']['instance']).split(":")
+                if ip[0]!=cp:
+                    total+=float((node['value'][1]))
+                    #print(node)
+                    #print(float((node['value'][1])))
+                    #print(total)
+            print(total)
+    elif mode == "Memory" or mode == 'memory':
+        query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
+        #print(query)
+        result = pc.custom_query(query=query)
+        if len(result) > 0:
+            for node in result:
+                #print(node)
+                ip=str(node['metric']['instance']).split(":")
+                if ip[0]!=cp:
+                    total+=float((node['value'][1]))
+                    #print(node)
+                    #print(float((node['value'][1])))
+                    #print(total)
+            print(total)
+    else:
+        print("Please input cpu or Memory")
+    
+    return float(total)
 
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
     #totalAvailableCPU, totalAvailableMemory, available_resources_per_node = compute_available_resources(cluster)
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
 
-    calcprecentage_cpu=app_cpu_request/node_resources_cpu
-    calcprecentage_memory=app_memory_request/node_resources_memory
-    totalidelcpu=
-    count = 0
-
+    calcprecentage_cpu=node_resources_cpu/app_cpu_request
+    print(calcprecentage_cpu)
+    #calcprecentage_memory=app_memory_request/node_resources_memory
+    #print(calcprecentage_memory)
+    totalidelcpu=getresources("cpu",cluster)
+    totalmemory=getresources("memory",cluster)
+    count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
+    print("count" + str(count))
+    print("cpucount"+ str(totalidelcpu/calcprecentage_cpu))
+    print("ramcount"+str((totalmemory/1048576)/app_memory_request))
     # for node in available_resources_per_node:
     #     count += min(math.floor(node['cpu']/app_cpu_request), math.floor(node['memory']/app_memory_request))
 
@@ -756,3 +819,5 @@ def deleteJob(cluster, fogapp_name, namespace):
         core_v1.delete_namespaced_job(namespace=namespace, name=fogapp_name, _request_timeout=timeout)
     except:
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
+
+getFogAppLocations("app_name", "default", 189, 878, 1, 1, "worst-fit", "create")
