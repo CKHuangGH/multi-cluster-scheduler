@@ -632,6 +632,10 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             print(eligible_clusters)
             sorted_eligible_clusters = sorted(eligible_clusters, key = lambda i: i['idle_cpu'], reverse=True)
             print(sorted_eligible_clusters)
+            path = 'cluster.csv'
+            f = open(path, 'a')
+            f.write(str(app_name)+","+"before" +","+str(sorted_eligible_clusters)+","+"after"+",")
+            f.close()
             #sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'], reverse=True)
         elif placement_policy == 'best_fit' or placement_policy == 'best-fit':
             sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'])

@@ -1110,23 +1110,23 @@ def create_fn(body, spec, patch, **kwargs):
                         total_overflow = 0
 
             print("Final list of clusters .................", eligible_clusters)
-            print("Final overflow .................", total_overflow)
+        #     print("Final overflow .................", total_overflow)
 
-            if total_overflow > 0:
-                dict = {}
-                dict['message'] = 'to_cloud'
-                dict['replicas'] = total_overflow
-                patch.status['message'] = dict
-                raise kopf.TemporaryError("Fog clusters not sufficient to run the app. Provisioning cloud cluster.....................",
-                                          delay=30)
-        else:
-            dict = {}
-            dict['message'] = 'to_cloud'
-            dict['replicas'] = fogapp_replicas
-            patch.status['message'] = dict
-            raise kopf.TemporaryError(
-                "No clusters found at the fog level. Provisioning cloud cluster.....................",
-                delay=30)
+        #     if total_overflow > 0:
+        #         dict = {}
+        #         dict['message'] = 'to_cloud'
+        #         dict['replicas'] = total_overflow
+        #         patch.status['message'] = dict
+        #         raise kopf.TemporaryError("Fog clusters not sufficient to run the app. Provisioning cloud cluster.....................",
+        #                                   delay=30)
+        # else:
+        #     dict = {}
+        #     dict['message'] = 'to_cloud'
+        #     dict['replicas'] = fogapp_replicas
+        #     patch.status['message'] = dict
+        #     raise kopf.TemporaryError(
+        #         "No clusters found at the fog level. Provisioning cloud cluster.....................",
+        #         delay=30)
     else:
         input_clusters = spec['locations'].split(",")
         fogapp_locations = []
@@ -1358,7 +1358,10 @@ def create_fn(body, spec, patch, **kwargs):
             eligible_clusters.remove(cluster)
 
     print("Final list of eligible clusters ...", eligible_clusters)
-
+    path = 'cluster.csv'
+    f = open(path, 'a')
+    f.write(str(fogapp_name)+","+str(eligible_clusters)+"\n")
+    f.close()
     temp_list = []
     for cluster in eligible_clusters:
         temp_list.append(cluster)
