@@ -616,8 +616,6 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
                 #     query = "sum(irate(container_network_receive_bytes_total{cluster_name='" + cluster['name'] + "', namespace='" + app_namespace + "', pod=~'frontend.*'}[60s]))"
                 total=0
                 result = pc.custom_query(query=query)
-                print(len(result))
-                print(result)
                 if len(result) > 0:
                     masterip=getMasterIP(cluster['name'])
                     for node in result:
