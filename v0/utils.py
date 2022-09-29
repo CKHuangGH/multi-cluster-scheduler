@@ -605,6 +605,11 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
 
         fogapp_locations = []
 
+        path = 'cluster.csv'
+        f = open(path, 'a')
+        f.write(str(app_name)+","+str(sorted_eligible_clusters)+",")
+        f.close()
+
         for cluster in sorted_eligible_clusters:
             dict = {}
             dict['name'] = cluster['name']

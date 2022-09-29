@@ -622,6 +622,9 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
                         ip=str(node['metric']['instance']).split(":")
                         if ip[0]!=masterip:
                             print(float((node['value'][1])))
+                            path = 'cluster.csv'
+                            f = open(path, 'a')
+                            f.write(str(cluster['name'])+","+str(float((node['value'][1])))+",")
                             total+=float((node['value'][1]))
                     cluster['idle_cpu'] = total
                 else:
@@ -630,10 +633,6 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             print(eligible_clusters)
             sorted_eligible_clusters = sorted(eligible_clusters, key = lambda i: i['idle_cpu'], reverse=True)
             print(sorted_eligible_clusters)
-            path = 'cluster.csv'
-            f = open(path, 'a')
-            f.write(str(app_name)+","+"before" +","+str(sorted_eligible_clusters)+","+"after"+",")
-            f.close()
             #sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'], reverse=True)
         elif placement_policy == 'best_fit' or placement_policy == 'best-fit':
             sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'])
@@ -641,6 +640,11 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
         print("List of sorted traffic and policy ....", sorted_eligible_clusters)
 
         fogapp_locations = []
+
+        path = 'cluster.csv'
+        f = open(path, 'a')
+        f.write(str(app_name)+","+str(sorted_eligible_clusters)+",")
+        f.close()
 
         for cluster in sorted_eligible_clusters:
             dict = {}

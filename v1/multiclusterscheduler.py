@@ -1358,10 +1358,7 @@ def create_fn(body, spec, patch, **kwargs):
             eligible_clusters.remove(cluster)
 
     print("Final list of eligible clusters ...", eligible_clusters)
-    path = 'cluster.csv'
-    f = open(path, 'a')
-    f.write(str(fogapp_name)+","+str(eligible_clusters)+"\n")
-    f.close()
+
     temp_list = []
     for cluster in eligible_clusters:
         temp_list.append(cluster)
@@ -1374,6 +1371,11 @@ def create_fn(body, spec, patch, **kwargs):
     for cluster in temp_list:
         eligible_clusters.append(cluster['name'])
         eligible_replicas.append(cluster['replicas'])
+        
+    path = 'cluster.csv'
+    f = open(path, 'a')
+    f.write(str(fogapp_name)+","+str(eligible_clusters)+"\n")
+    f.close()
 
     # For the spec file
     job_template = "{'apiVersion': 'batch/v1', 'kind': 'Job', 'metadata': {'name': '" + fogapp_name + "'}, 'spec': "

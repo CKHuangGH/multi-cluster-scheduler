@@ -1372,6 +1372,12 @@ def create_fn(body, spec, patch, **kwargs):
         eligible_clusters.append(cluster['name'])
         eligible_replicas.append(cluster['replicas'])
 
+
+    path = 'cluster.csv'
+    f = open(path, 'a')
+    f.write(str(fogapp_name)+","+str(eligible_clusters)+"\n")
+    f.close()
+    
     # For the spec file
     job_template = "{'apiVersion': 'batch/v1', 'kind': 'Job', 'metadata': {'name': '" + fogapp_name + "'}, 'spec': "
     job_json = job_template + spec_text + "}"
