@@ -622,7 +622,6 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
 
             if maximum_replicas > 0:
                 dict = {}
-
                 dict['name'] = cluster
                 dict['max_replicas'] = maximum_replicas
                 eligible_clusters.append(dict)
@@ -746,7 +745,6 @@ def getServiceClusters(name, namespace):
 
     return current_clusters, original_clusters
 
-
 def getCloudCluster():
     all_clusters = get_all_federation_clusters()
     cloud_cluster = ''
@@ -761,7 +759,6 @@ def createDeployment(cluster, deployment_body, namespace):
         core_v1.create_namespaced_deployment(namespace=namespace, body=deployment_body, _request_timeout=timeout)
     except:
         print("Connection timeout after " + str(timeout) + " seconds when creating Deployment on " + cluster )
-
 
 def createService(cluster, service_body, namespace):
     core_v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=cluster))
@@ -791,7 +788,6 @@ def patchDeployment(cluster, deployment_name, deployment_body, namespace):
     except:
         print("Connection timeout after " + str(timeout) + " seconds when patching Deployment on " + cluster)
 
-
 def patchService(cluster, service_name, service_body, namespace):
     core_v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=cluster))
     try:
@@ -820,4 +816,4 @@ def deleteJob(cluster, fogapp_name, namespace):
     except:
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
 
-getFogAppLocations("app_name", "default", 189, 878, 1, 1, "worst-fit", "create")
+#getFogAppLocations("app_name", "default", 189, 878, 1, 1, "worst-fit", "create")
