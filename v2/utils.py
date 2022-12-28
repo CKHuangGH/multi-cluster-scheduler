@@ -660,7 +660,6 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             # sorted_dict = dict(sorted(cluster_network_receive.items(),
             #                           key=operator.itemgetter(1),
             #                           reverse=True))
-
             sorted_eligible_clusters = sorted(eligible_clusters, key = lambda i: i['ntk_rcv'], reverse=True)
         elif placement_policy == 'worst_fit' or placement_policy == 'worst-fit':
             sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'], reverse=True)
