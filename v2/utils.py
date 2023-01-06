@@ -233,7 +233,8 @@ def getresources(mode,cluster):
     prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
     if mode == "CPU" or mode == 'cpu':
-        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[30s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[30s]))by (instance))*100"
+        #uery="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[30s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[30s]))by (instance))*100"
+        query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
         #print(query)
         result = pc.custom_query(query=query)
         if len(result) > 0:
