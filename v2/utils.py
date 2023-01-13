@@ -8,6 +8,7 @@ import operator
 import os
 import math
 import pandas as pd
+import requests
 
 # Load k8s contexts
 config.load_kube_config()
@@ -220,7 +221,7 @@ def getControllerMasterIPCluster(cluster):
 
         master_ip = [i.address for i in addresses if i.type == "InternalIP"][0]
     except:
-        print("Connection timeout after " + str(timeouts) + " seconds to host cluster")
+        print("Connection timeout after " + str(timeout) + " seconds to host cluster")
 
     return master_ip
 
@@ -231,10 +232,15 @@ def getresources(mode,cluster):
     prom_host = getControllerMasterIP()
     prom_port = 30090
     prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
+
+
+
+
+
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
     if mode == "CPU" or mode == 'cpu':
-        #uery="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[30s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[30s]))by (instance))*100"
-        query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
+        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[15s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[15s]))by (instance))*100"
+        #query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
         #print(query)
         result = pc.custom_query(query=query)
         if len(result) > 0:
@@ -242,6 +248,7 @@ def getresources(mode,cluster):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
+                    print(float((node['value'][1])))
                     total+=float((node['value'][1]))
                     #print(node)
                     #print(float((node['value'][1])))
@@ -260,30 +267,32 @@ def getresources(mode,cluster):
                     #print(node)
                     #print(float((node['value'][1])))
                     #print(total)
-            print(total)
+            #print(total)
     else:
         print("Please input cpu or Memory")
     
     return float(total)
 
+
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
     #totalAvailableCPU, totalAvailableMemory, available_resources_per_node = compute_available_resources(cluster)
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
-
-    calcprecentage_cpu=node_resources_cpu/app_cpu_request
+    print(node_resources_cpu)
+    calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
     print(calcprecentage_cpu)
     #calcprecentage_memory=app_memory_request/node_resources_memory
     #print(calcprecentage_memory)
     totalidelcpu=getresources("cpu",cluster)
     totalmemory=getresources("memory",cluster)
     count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
-    print("count" + str(count))
-    print("cpucount"+ str(totalidelcpu/calcprecentage_cpu))
-    print("ramcount"+str((totalmemory/1048576)/app_memory_request))
+    print("totalidelcpu: " + str(totalidelcpu))
+    print("totamemory: " + str(totalmemory))
+    print("count: " + str(count))
+    print("cpucount: "+ str(totalidelcpu/calcprecentage_cpu))
+    print("ramcount: "+str((totalmemory/1048576)/app_memory_request))
     # for node in available_resources_per_node:
     #     count += min(math.floor(node['cpu']/app_cpu_request), math.floor(node['memory']/app_memory_request))
-
     return count
 
 def computeAllocatableCapacity(cluster, app_name, namespace):
@@ -816,4 +825,4 @@ def deleteJob(cluster, fogapp_name, namespace):
     except:
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
 
-#getFogAppLocations("app_name", "default", 189, 878, 1, 1, "worst-fit", "create")
+getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
