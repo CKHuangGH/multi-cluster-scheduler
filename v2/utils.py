@@ -12,7 +12,7 @@ import requests
 
 # Load k8s contexts
 config.load_kube_config()
-
+checkdict={}
 timeout = 30
 
 ureg = UnitRegistry()
@@ -228,32 +228,50 @@ def getControllerMasterIPCluster(cluster):
 def getresources(mode,cluster):
     total=0
     cp=getControllerMasterIPCluster(cluster)
-    #print(cp)
     prom_host = getControllerMasterIP()
     prom_port = 30090
     prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
+    api_url =  prom_url + "/api/v1/targets"
+    prom_header = {'Accept-Encoding': 'gzip'}
+    r = requests.get(url=api_url,headers=prom_header)
+    data = r.json()
+    nomaster=str(prom_host) +":9100"
+    scrapeurl = []
+    for item in data["data"]["activeTargets"]:
+        print(item)
+        # if item["labels"]["cluster_name"] == cluster:
+        #     print(item)
+        #     if item["labels"]["instance"] != nomaster:
+
+        #         scrapeurl.append(item["scrapeUrl"])
 
 
 
 
 
+
+
+
+
+    #print(response.text)
+    print(api_url)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
+    i=0
     if mode == "CPU" or mode == 'cpu':
-        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[15s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[15s]))by (instance))*100"
+        #different
+        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[120s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[120s]))by (instance))*100"
         #query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
         #print(query)
         result = pc.custom_query(query=query)
         if len(result) > 0:
             for node in result:
-                #print(node)
+                print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    print(float((node['value'][1])))
+                    checkdict[ip[0]]=float((node['value'][1]))
                     total+=float((node['value'][1]))
-                    #print(node)
-                    #print(float((node['value'][1])))
-                    #print(total)
-            print(total)
+                    i+=1
+                
     elif mode == "Memory" or mode == 'memory':
         query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
         #print(query)
@@ -264,6 +282,7 @@ def getresources(mode,cluster):
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
                     total+=float((node['value'][1]))
+                    i+=1
                     #print(node)
                     #print(float((node['value'][1])))
                     #print(total)
@@ -271,7 +290,11 @@ def getresources(mode,cluster):
     else:
         print("Please input cpu or Memory")
     
-    return float(total)
+    if i==5:
+        check5=1
+    else:
+        check5=0
+    return float(total), check5
 
 
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
@@ -283,8 +306,12 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print(calcprecentage_cpu)
     #calcprecentage_memory=app_memory_request/node_resources_memory
     #print(calcprecentage_memory)
-    totalidelcpu=getresources("cpu",cluster)
-    totalmemory=getresources("memory",cluster)
+    while 1:
+        totalidelcpu,check5=getresources("cpu",cluster)
+        totalmemory,check5=getresources("memory",cluster)
+        if check5==1:
+            break
+
     count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
     print("totalidelcpu: " + str(totalidelcpu))
     print("totamemory: " + str(totalmemory))
