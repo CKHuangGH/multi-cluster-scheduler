@@ -227,51 +227,43 @@ def getControllerMasterIPCluster(cluster):
 
 def getresources(mode,cluster):
     total=0
+    check5=0
+    scrapetime=0
     cp=getControllerMasterIPCluster(cluster)
     prom_host = getControllerMasterIP()
     prom_port = 30090
     prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
     api_url =  prom_url + "/api/v1/targets"
-    prom_header = {'Accept-Encoding': 'gzip'}
-    r = requests.get(url=api_url,headers=prom_header)
+    r = requests.get(url=api_url)
     data = r.json()
-    nomaster=str(prom_host) +":9100"
-    scrapeurl = []
-    for item in data["data"]["activeTargets"]:
-        print(item)
-        # if item["labels"]["cluster_name"] == cluster:
-        #     print(item)
-        #     if item["labels"]["instance"] != nomaster:
-
-        #         scrapeurl.append(item["scrapeUrl"])
-
-
-
-
-
-
-
-
-
+    try:
+        for item in data["data"]["activeTargets"]:
+            if item["discoveredLabels"]["cluster_name"] == cluster:
+                print(item["discoveredLabels"]["__scrape_interval__"])
+                time=item["discoveredLabels"]["__scrape_interval__"].split("s")
+                scrapetime=time[0]
+                print(scrapetime)
+                break
+    except:
+        print("error")
     #print(response.text)
-    print(api_url)
+    scrapetime=int(scrapetime)*3
+    print(scrapetime)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
     i=0
     if mode == "CPU" or mode == 'cpu':
         #different
-        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}[120s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}[120s]))by (instance))*100"
+        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"s]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"s]))by (instance))*100"
         #query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
-        #print(query)
+        print(query)
         result = pc.custom_query(query=query)
         if len(result) > 0:
             for node in result:
                 print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    checkdict[ip[0]]=float((node['value'][1]))
                     total+=float((node['value'][1]))
                     i+=1
-                
     elif mode == "Memory" or mode == 'memory':
         query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
         #print(query)
