@@ -288,7 +288,6 @@ def getresources(mode,cluster):
         check5=0
     return float(total), check5
 
-
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
     #totalAvailableCPU, totalAvailableMemory, available_resources_per_node = compute_available_resources(cluster)
@@ -299,9 +298,9 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     #calcprecentage_memory=app_memory_request/node_resources_memory
     #print(calcprecentage_memory)
     while 1:
-        totalidelcpu,check5=getresources("cpu",cluster)
-        totalmemory,check5=getresources("memory",cluster)
-        if check5==1:
+        totalmemory,checkram5=getresources("memory",cluster)
+        totalidelcpu,checkcpu5=getresources("cpu",cluster)
+        if checkram5==1 and checkcpu5==1:
             break
 
     count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
