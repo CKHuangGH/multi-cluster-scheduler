@@ -229,6 +229,7 @@ def getresources(mode,cluster):
     total=0
     check5=0
     scrapetime=0
+    nodelist=[]
     cp=getControllerMasterIPCluster(cluster)
     prom_host = getControllerMasterIP()
     prom_port = 30090
@@ -256,7 +257,7 @@ def getresources(mode,cluster):
     i=0
     if mode == "CPU" or mode == 'cpu':
         #different
-        query="(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance)/sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance))*100"
+        query="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
         #query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
         print(query)
         result = pc.custom_query(query=query)
@@ -265,7 +266,8 @@ def getresources(mode,cluster):
                 print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    total+=float((node['value'][1]))
+                    nodelist.append(float((node['value'][1])))
+                    #total+=float((node['value'][1]))
                     i+=1
     elif mode == "Memory" or mode == 'memory':
         query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
@@ -276,7 +278,8 @@ def getresources(mode,cluster):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    total+=float((node['value'][1]))
+                    nodelist.append(float((node['value'][1])))
+                    #total+=float((node['value'][1]))
                     i+=1
                     #print(node)
                     #print(float((node['value'][1])))
@@ -289,7 +292,7 @@ def getresources(mode,cluster):
         check5=1
     else:
         check5=0
-    return float(total), check5
+    return nodelist, check5
 
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
@@ -305,13 +308,16 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         totalidelcpu,checkcpu5=getresources("cpu",cluster)
         if checkram5==1 and checkcpu5==1:
             break
-
-    count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
-    print("totalidelcpu: " + str(totalidelcpu))
-    print("totamemory: " + str(totalmemory))
+    count=0
+    for node in range(0,len(totalidelcpu)):
+        print(node)
+        count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
+        #count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
+    # print("totalidelcpu: " + str(totalidelcpu))
+    # print("totamemory: " + str(totalmemory))
     print("count: " + str(count))
-    print("cpucount: "+ str(totalidelcpu/calcprecentage_cpu))
-    print("ramcount: "+str((totalmemory/1048576)/app_memory_request))
+    # print("cpucount: "+ str(totalidelcpu/calcprecentage_cpu))
+    # print("ramcount: "+str((totalmemory/1048576)/app_memory_request))
     # for node in available_resources_per_node:
     #     count += min(math.floor(node['cpu']/app_cpu_request), math.floor(node['memory']/app_memory_request))
     return count
