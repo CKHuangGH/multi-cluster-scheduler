@@ -732,8 +732,10 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
 
         #fogapp_locations = fogapp_locations[:clusters_qty]
         f=open("logs.csv","a")
-        f.write(str(app_name)+","+str(fogapp_locations)+"\n")
+        f.write(str(app_name))
+        f.write(","+str(fogapp_locations)+"\n")
         f.close()
+        
         return fogapp_locations
 
 def getFogAppClusters(name, namespace):
