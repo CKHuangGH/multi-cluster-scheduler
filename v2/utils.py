@@ -304,10 +304,14 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     #print(calcprecentage_cpu)
     #calcprecentage_memory=app_memory_request/node_resources_memory
     #print(calcprecentage_memory)
+    timer=0
     while 1:
         totalmemory,checkram5=getresources("memory",cluster)
         totalidelcpu,checkcpu5=getresources("cpu",cluster)
+        timer+=1
         if checkram5==1 and checkcpu5==1:
+            break
+        if timer==3:
             break
     count=0
     print(totalmemory,totalidelcpu)
