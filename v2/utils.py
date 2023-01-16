@@ -263,11 +263,12 @@ def getresources(mode,cluster):
         result = pc.custom_query(query=query)
         if len(result) > 0:
             for node in result:
-                print(node)
+                #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    nodelist.append(float((node['value'][1])))
+                    nodelist.append(float((node['value'][1]))-20)
                     #total+=float((node['value'][1]))
+                    #print(nodelist)
                     i+=1
     elif mode == "Memory" or mode == 'memory':
         query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
@@ -278,12 +279,12 @@ def getresources(mode,cluster):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    nodelist.append(float((node['value'][1])))
+                    nodelist.append(float((node['value'][1]))-524288000)
                     #total+=float((node['value'][1]))
                     i+=1
                     #print(node)
                     #print(float((node['value'][1])))
-                    #print(total)
+                    #print(nodelist)
             #print(total)
     else:
         print("Please input cpu or Memory")
@@ -298,9 +299,9 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
     #totalAvailableCPU, totalAvailableMemory, available_resources_per_node = compute_available_resources(cluster)
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
-    print(node_resources_cpu)
+    #print(node_resources_cpu)
     calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
-    print(calcprecentage_cpu)
+    #print(calcprecentage_cpu)
     #calcprecentage_memory=app_memory_request/node_resources_memory
     #print(calcprecentage_memory)
     while 1:
@@ -309,8 +310,9 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         if checkram5==1 and checkcpu5==1:
             break
     count=0
+    print(totalmemory,totalidelcpu)
     for node in range(0,len(totalidelcpu)):
-        print(node)
+        #print(node)
         count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
         #count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
     # print("totalidelcpu: " + str(totalidelcpu))
@@ -729,6 +731,9 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
         print("Final list of clusters which will host the app in the Default case ....", fogapp_locations)
 
         #fogapp_locations = fogapp_locations[:clusters_qty]
+        f=open("logs.csv","a")
+        f.write(str(app_name)+","+str(fogapp_locations)+"\n")
+        f.close()
         return fogapp_locations
 
 def getFogAppClusters(name, namespace):
