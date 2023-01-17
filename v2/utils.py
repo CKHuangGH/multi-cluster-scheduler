@@ -309,9 +309,11 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         totalmemory,checkram5=getresources("memory",cluster)
         totalidelcpu,checkcpu5=getresources("cpu",cluster)
         timer+=1
+        sleep(1)
         if checkram5==1 and checkcpu5==1:
             break
         if timer==3:
+            totalidelcpu=[0.1,0.1,0.1,0.1,0.1]
             break
     count=0
     print(totalmemory,totalidelcpu)
