@@ -226,7 +226,6 @@ def getControllerMasterIPCluster(cluster):
     return master_ip
 
 def getresources(mode,cluster):
-    total=0
     check5=0
     scrapetime=0
     nodelist=[]
@@ -247,19 +246,19 @@ def getresources(mode,cluster):
                 time=item["discoveredLabels"]["__scrape_interval__"].split("s")
                 unit="s"
             scrapetime=time[0]
-            print(scrapetime)
+            #print(scrapetime)
             break
     # except:
     #     print("error")
     scrapetime=str(int(scrapetime)*3)+str(unit)
-    print(scrapetime)
+    #print(scrapetime)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
     i=0
     if mode == "CPU" or mode == 'cpu':
         #different
         query="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
         #query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
-        print(query)
+        #print(query)
         result = pc.custom_query(query=query)
         if len(result) > 0:
             for node in result:
@@ -267,8 +266,6 @@ def getresources(mode,cluster):
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
                     nodelist.append(float((node['value'][1]))-20)
-                    #total+=float((node['value'][1]))
-                    #print(nodelist)
                     i+=1
     elif mode == "Memory" or mode == 'memory':
         query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
@@ -280,12 +277,7 @@ def getresources(mode,cluster):
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
                     nodelist.append(float((node['value'][1]))-524288000)
-                    #total+=float((node['value'][1]))
                     i+=1
-                    #print(node)
-                    #print(float((node['value'][1])))
-                    #print(nodelist)
-            #print(total)
     else:
         print("Please input cpu or Memory")
     
@@ -308,22 +300,18 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     while 1:
         totalmemory,checkram5=getresources("memory",cluster)
         totalidelcpu,checkcpu5=getresources("cpu",cluster)
-        timer+=1
-        sleep(1)
+        #timer+=1
         if checkram5==1 and checkcpu5==1:
             break
-        if timer==3:
-            totalidelcpu=[0.1,0.1,0.1,0.1,0.1]
-            break
+        # if timer==3:
+        #     break
     count=0
-    print(totalmemory,totalidelcpu)
     for node in range(0,len(totalidelcpu)):
-        #print(node)
         count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
-        #count = min(math.floor(totalidelcpu/calcprecentage_cpu), math.floor((totalmemory/1048576)/app_memory_request))
-    # print("totalidelcpu: " + str(totalidelcpu))
-    # print("totamemory: " + str(totalmemory))
-    print("count: " + str(count))
+
+    print(str()+str(cluster)+" "+"count: " + str(count))
+    #print("count: " + str(count))
+
     # print("cpucount: "+ str(totalidelcpu/calcprecentage_cpu))
     # print("ramcount: "+str((totalmemory/1048576)/app_memory_request))
     # for node in available_resources_per_node:
@@ -865,4 +853,4 @@ def deleteJob(cluster, fogapp_name, namespace):
     except:
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
 
-#getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
+getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
