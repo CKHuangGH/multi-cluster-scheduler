@@ -296,19 +296,20 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     #print(calcprecentage_cpu)
     #calcprecentage_memory=app_memory_request/node_resources_memory
     #print(calcprecentage_memory)
-    timer=0
-    while 1:
-        totalmemory,checkram5=getresources("memory",cluster)
-        totalidelcpu,checkcpu5=getresources("cpu",cluster)
-        #timer+=1
-        if checkram5==1 and checkcpu5==1:
-            break
-        # if timer==3:
-        #     break
+    totalmemory,checkram5=getresources("memory",cluster)
+    totalidelcpu,checkcpu5=getresources("cpu",cluster)
     count=0
-    for node in range(0,len(totalidelcpu)):
-        count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
 
+    if len(totalmemory)<= len(totalidelcpu):
+        listlen=len(totalmemory)
+    elif len(totalidelcpu) <= len(totalmemory):
+        listlen=len(totalidelcpu)
+
+    print(listlen)
+
+    for node in range(0,len(listlen)):
+        count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
+    
     print(str()+str(cluster)+" "+"count: " + str(count))
     #print("count: " + str(count))
 
@@ -671,6 +672,12 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
                 dict['name'] = cluster
                 dict['max_replicas'] = replicas * clusters_qty
                 fogapp_locations.append(dict)
+        
+        f=open("logs.csv","a")
+        f.write(str(app_name))
+        f.write(","+str(fogapp_locations)+"\n")
+        f.close()
+        
         return fogapp_locations
     else:
         sorted_eligible_clusters = []
