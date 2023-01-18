@@ -289,15 +289,16 @@ def getresources(mode,cluster):
 
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
-    #totalAvailableCPU, totalAvailableMemory, available_resources_per_node = compute_available_resources(cluster)
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
-    #print(node_resources_cpu)
+
     calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
-    #print(calcprecentage_cpu)
-    #calcprecentage_memory=app_memory_request/node_resources_memory
-    #print(calcprecentage_memory)
-    totalmemory,checkram5=getresources("memory",cluster)
-    totalidelcpu,checkcpu5=getresources("cpu",cluster)
+
+    while 1:
+        totalmemory,checkram5=getresources("memory",cluster)
+        totalidelcpu,checkcpu5=getresources("cpu",cluster)
+        if len(totalmemory)!=0 and len(totalmemory)!=0:
+            break
+    
     count=0
 
     if len(totalmemory)<= len(totalidelcpu):
@@ -305,18 +306,11 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     elif len(totalidelcpu) <= len(totalmemory):
         listlen=len(totalidelcpu)
 
-    #print(listlen)
-
     for node in range(0,listlen):
         count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
     
     print(str()+str(cluster)+" "+"count: " + str(count))
-    #print("count: " + str(count))
 
-    # print("cpucount: "+ str(totalidelcpu/calcprecentage_cpu))
-    # print("ramcount: "+str((totalmemory/1048576)/app_memory_request))
-    # for node in available_resources_per_node:
-    #     count += min(math.floor(node['cpu']/app_cpu_request), math.floor(node['memory']/app_memory_request))
     return count
 
 def computeAllocatableCapacity(cluster, app_name, namespace):
