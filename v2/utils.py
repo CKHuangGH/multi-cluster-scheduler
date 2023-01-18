@@ -305,9 +305,9 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     elif len(totalidelcpu) <= len(totalmemory):
         listlen=len(totalidelcpu)
 
-    print(listlen)
+    #print(listlen)
 
-    for node in range(0,len(listlen)):
+    for node in range(0,listlen):
         count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
     
     print(str()+str(cluster)+" "+"count: " + str(count))
