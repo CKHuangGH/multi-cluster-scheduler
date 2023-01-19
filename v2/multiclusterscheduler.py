@@ -7,12 +7,6 @@ import json
 import time
 import logging
 
-
-@kopf.on.startup()
-def configure(settings: kopf.OperatorSettings, **_):
-    settings.posting.level = logging.WARNING
-
-
 # Create multi-cluster deployment
 @kopf.on.create('fogguru.eu', 'v1', 'multiclusterdeployments')
 def create_fn(body, spec, patch, **kwargs):
