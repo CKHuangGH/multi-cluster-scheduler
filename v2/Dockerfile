@@ -4,4 +4,4 @@ COPY serf /usr/local/bin/serf
 RUN chmod +x /usr/local/bin/serf
 COPY utils.py /utils.py
 COPY multiclusterscheduler.py /multiclusterscheduler.py
-CMD kopf run --standalone --verbose --log-format=full /multiclusterscheduler.py
+CMD kopf run --standalone --quiet --log-format=full /multiclusterscheduler.py
