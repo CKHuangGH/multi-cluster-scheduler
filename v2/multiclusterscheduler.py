@@ -5,7 +5,9 @@ from utils import findPossibleClusters, getFogAppLocations,  getCloudCluster, \
     deleteJob, patchJob, getMaximumReplicas, findNearestClusters, getAllocatableCapacity, getFogAppClusters, getServiceClusters
 import json
 import time
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
 # Create multi-cluster deployment
 @kopf.on.create('fogguru.eu', 'v1', 'multiclusterdeployments')
 def create_fn(body, spec, patch, **kwargs):
