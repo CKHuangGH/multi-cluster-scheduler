@@ -10,7 +10,7 @@ import logging
 
 @kopf.on.startup()
 def configure(settings: kopf.OperatorSettings, **_):
-    settings.posting.level = logging.INFO
+    settings.posting.level = logging.WARNING
 
 
 # Create multi-cluster deployment
