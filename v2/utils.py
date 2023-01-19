@@ -250,7 +250,7 @@ def getresources(mode,cluster):
             break
     # except:
     #     print("error")
-    scrapetime=str(int(scrapetime)*3)+str(unit)
+    scrapetime=str(int(scrapetime)*5)+str(unit)
     #print(scrapetime)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
     i=0
