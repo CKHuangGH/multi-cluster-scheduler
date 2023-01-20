@@ -239,25 +239,29 @@ def getresources(mode,cluster):
     #try:
     for item in data["data"]["activeTargets"]:
         if item["discoveredLabels"]["cluster_name"] == cluster:
-            if item["discoveredLabels"]["__scrape_interval__"][-1]=="m":
-                time=item["discoveredLabels"]["__scrape_interval__"].split("m")
-                unit="m"
-            elif item["discoveredLabels"]["__scrape_interval__"][-1]=="s":
-                time=item["discoveredLabels"]["__scrape_interval__"].split("s")
-                unit="s"
-            scrapetime=time[0]
+            scrapetime=item["discoveredLabels"]["__scrape_interval__"]
+            # if item["discoveredLabels"]["__scrape_interval__"][-1]=="m":
+            #     time=item["discoveredLabels"]["__scrape_interval__"].split("m")
+            #     unit="m"
+            # elif item["discoveredLabels"]["__scrape_interval__"][-1]=="s":
+            #     time=item["discoveredLabels"]["__scrape_interval__"].split("s")
+            #     unit="s"
+            #scrapetime=time[0]
             #print(scrapetime)
             break
     # except:
     #     print("error")
-    scrapetime=str(int(scrapetime)*5)+str(unit)
+    #scrapetime=str(int(scrapetime)*3)+str(unit)
     #print(scrapetime)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
     i=0
     if mode == "CPU" or mode == 'cpu':
         #different
-        query="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
-        #query="100-(instance:node_cpu:ratio{cluster_name=\"" + cluster + "\"}*100)"
+        #query="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
+        if scrapetime=="5s":
+            query="record5s{cluster_name=\"" + cluster + "\"}"
+        elif scrapetime=="1m":
+            query="record60s{cluster_name=\"" + cluster + "\"}"
         #print(query)
         result = pc.custom_query(query=query)
         if len(result) > 0:
