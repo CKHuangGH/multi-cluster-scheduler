@@ -225,36 +225,10 @@ def getControllerMasterIPCluster(cluster):
 
     return master_ip
 
-def getresources(mode,cluster):
-    check5=0
-    scrapetime=0
+def getresources(mode,cluster,scrapetime,prom_host,prom_port):
     nodelist=[]
     cp=getControllerMasterIPCluster(cluster)
-    prom_host = getControllerMasterIP()
-    prom_port = 30090
     prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
-    api_url =  prom_url + "/api/v1/targets"
-    r = requests.get(url=api_url)
-    data = r.json()
-    try:
-        for item in data["data"]["activeTargets"]:
-            if item["discoveredLabels"]["cluster_name"] == cluster:
-                #scrapetime=item["discoveredLabels"]["__scrape_interval__"]
-                if item["discoveredLabels"]["__scrape_interval__"][-1]=="m":
-                    time=item["discoveredLabels"]["__scrape_interval__"].split("m")
-                    unit="m"
-                elif item["discoveredLabels"]["__scrape_interval__"][-1]=="s":
-                    time=item["discoveredLabels"]["__scrape_interval__"].split("s")
-                    unit="s"
-                scrapetime=time[0]
-                #print(scrapetime)
-                break
-    except:
-        time=3
-        unit="m"
-    #     print("error")
-    scrapetime=str(int(scrapetime)*3)+str(unit)
-    #print(scrapetime)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
     i=0
     if mode == "CPU" or mode == 'cpu':
@@ -274,6 +248,8 @@ def getresources(mode,cluster):
                 if ip[0]!=cp:
                     nodelist.append(float((node['value'][1]))-20)
                     i+=1
+        else:
+            nodelist=[0.0,0.0,0.0,0.0,0.0]
     elif mode == "Memory" or mode == 'memory':
         query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
         #print(query)
@@ -285,38 +261,61 @@ def getresources(mode,cluster):
                 if ip[0]!=cp:
                     nodelist.append(float((node['value'][1]))-524288000)
                     i+=1
+        else:
+            nodelist=[0.0,0.0,0.0,0.0,0.0]
     else:
         print("Please input cpu or Memory")
     
-    if i==5:
-        check5=1
-    else:
-        check5=0
-    return nodelist, check5
+    return nodelist
+
+def gettimeforquery(cluster,prom_host,prom_port):
+    prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
+    api_url =  prom_url + "/api/v1/targets"
+    r = requests.get(url=api_url)
+    data = r.json()
+    try:
+        for item in data["data"]["activeTargets"]:
+            if item["discoveredLabels"]["cluster_name"] == cluster:
+                #scrapetime=item["discoveredLabels"]["__scrape_interval__"]
+                if item["discoveredLabels"]["__scrape_interval__"][-1]=="m":
+                    time=item["discoveredLabels"]["__scrape_interval__"].split("m")
+                    unit="m"
+                elif item["discoveredLabels"]["__scrape_interval__"][-1]=="s":
+                    time=item["discoveredLabels"]["__scrape_interval__"].split("s")
+                    unit="s"
+                scrapetime=time[0]
+                #print(scrapetime)
+                break
+    except:
+        scrapetime=1
+        unit="m"
+        print("get scrape interval error")
+    scrapetime=str(int(scrapetime)*3)+str(unit)
+    #print(scrapetime)
+    return scrapetime
+
 
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
 
     calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
-
-    while 1:
-        totalmemory,checkram5=getresources("memory",cluster)
-        totalidelcpu,checkcpu5=getresources("cpu",cluster)
-        if len(totalmemory)!=0 and len(totalidelcpu)!=0:
-            break
+    prom_host = getControllerMasterIP()
+    prom_port = 30090
+    scrapetime=gettimeforquery(cluster,prom_host,prom_port)
+    # while 1:
+    totalmemory=getresources("memory",cluster,scrapetime,prom_host,prom_port)
+    totalidelcpu=getresources("cpu",cluster,scrapetime,prom_host,prom_port)
+        # if len(totalmemory)!=0 and len(totalidelcpu)!=0:
+        #     break
     
     count=0
-
-    if len(totalmemory)<= len(totalidelcpu):
-        listlen=len(totalmemory)
-    elif len(totalidelcpu) <= len(totalmemory):
-        listlen=len(totalidelcpu)
+    listlen=min(len(totalmemory),len(totalidelcpu))
 
     for node in range(0,listlen):
         count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
     
-    print(str()+str(cluster)+" "+"count: " + str(count))
+    print(str(cluster)+" "+"count: " + str(count))
 
     return count
 
@@ -861,4 +860,8 @@ def deleteJob(cluster, fogapp_name, namespace):
     except:
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
 
-#getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
+# while 1:
+#     getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
+#     getFogAppLocations("app_name2", "default", 100, 78, 1, 1, "worst-fit", "create")
+#     getFogAppLocations("app_name3", "default", 100, 78, 1, 1, "worst-fit", "create")
+#     getFogAppLocations("app_name4", "default", 100, 78, 1, 1, "worst-fit", "create")
