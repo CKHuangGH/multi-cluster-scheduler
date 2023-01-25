@@ -247,9 +247,8 @@ def getresources(mode,cluster,scrapetime,prom_host,prom_port):
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
                     nodelist.append(float((node['value'][1]))-20)
-                    i+=1
         else:
-            nodelist=[0.0,0.0,0.0,0.0,0.0]
+            nodelist.clear()
     elif mode == "Memory" or mode == 'memory':
         query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
         #print(query)
@@ -260,20 +259,19 @@ def getresources(mode,cluster,scrapetime,prom_host,prom_port):
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
                     nodelist.append(float((node['value'][1]))-524288000)
-                    i+=1
         else:
-            nodelist=[0.0,0.0,0.0,0.0,0.0]
+            nodelist.clear()
     else:
         print("Please input cpu or Memory")
     
     return nodelist
 
 def gettimeforquery(cluster,prom_host,prom_port):
-    prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
-    api_url =  prom_url + "/api/v1/targets"
-    r = requests.get(url=api_url)
-    data = r.json()
     try:
+        prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
+        api_url =  prom_url + "/api/v1/targets"
+        r = requests.get(url=api_url)
+        data = r.json()
         for item in data["data"]["activeTargets"]:
             if item["discoveredLabels"]["cluster_name"] == cluster:
                 #scrapetime=item["discoveredLabels"]["__scrape_interval__"]
@@ -287,9 +285,10 @@ def gettimeforquery(cluster,prom_host,prom_port):
                 #print(scrapetime)
                 break
     except:
-        scrapetime=1
-        unit="m"
+        # scrapetime=1
+        # unit="m"
         print("get scrape interval error")
+        return 0
     scrapetime=str(int(scrapetime)*3)+str(unit)
     #print(scrapetime)
     return scrapetime
@@ -298,16 +297,23 @@ def gettimeforquery(cluster,prom_host,prom_port):
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     print("Get the maximum number of replicas > 0 clusters can run ....")
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
-
-    calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
-    prom_host = getControllerMasterIP()
-    prom_port = 30090
-    scrapetime=gettimeforquery(cluster,prom_host,prom_port)
-    # while 1:
-    totalmemory=getresources("memory",cluster,scrapetime,prom_host,prom_port)
-    totalidelcpu=getresources("cpu",cluster,scrapetime,prom_host,prom_port)
-        # if len(totalmemory)!=0 and len(totalidelcpu)!=0:
-        #     break
+    calcprecentage_cpu=0
+    scrapetime=0
+    while 1:
+        calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
+        if calcprecentage_cpu!=0:
+            break
+    while 1:
+        prom_host = getControllerMasterIP()
+        prom_port = 30090
+        scrapetime=gettimeforquery(cluster,prom_host,prom_port)
+        if scrapetime!=0:
+            break
+    while 1:
+        totalmemory=getresources("memory",cluster,scrapetime,prom_host,prom_port)
+        totalidelcpu=getresources("cpu",cluster,scrapetime,prom_host,prom_port)
+        if len(totalmemory)!=0 and len(totalidelcpu)!=0:
+            break
     
     count=0
     listlen=min(len(totalmemory),len(totalidelcpu))
