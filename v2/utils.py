@@ -230,7 +230,6 @@ def getresources(mode,cluster,scrapetime,prom_host,prom_port):
     cp=getControllerMasterIPCluster(cluster)
     prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
     pc = PrometheusConnect(url=prom_url, disable_ssl=True)
-    i=0
     if mode == "CPU" or mode == 'cpu':
         query="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
         # if scrapetime=="5s":
@@ -246,7 +245,7 @@ def getresources(mode,cluster,scrapetime,prom_host,prom_port):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    nodelist.append(float((node['value'][1]))-20)
+                    nodelist.append(float((node['value'][1]))-10)
         else:
             nodelist.clear()
     elif mode == "Memory" or mode == 'memory':
@@ -658,7 +657,7 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             if mode == 'create':
                 maximum_replicas = getMaximumReplicas(cluster, app_cpu_request, app_memory_request)
             elif mode == 'update':
-               maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
+                maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
 
             if maximum_replicas > 0:
                 dict = {}
