@@ -657,8 +657,8 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             # Get eligible clusters and their maximum capacity
             if mode == 'create':
                 maximum_replicas = getMaximumReplicas(cluster, app_cpu_request, app_memory_request)
-            #elif mode == 'update':
-            #    maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
+            elif mode == 'update':
+               maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
 
             if maximum_replicas > 0:
                 dict = {}
