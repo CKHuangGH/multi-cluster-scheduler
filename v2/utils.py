@@ -304,7 +304,6 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     while 1:
         calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
         i+=1
-        print("error for clac count")
         if calcprecentage_cpu!=0:
             print("clac: "+str(i))
             break
@@ -321,12 +320,14 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     while 1:
         totalmemory=getresources("memory",cluster,scrapetime,prom_host,prom_port)
         totalidelcpu=getresources("cpu",cluster,scrapetime,prom_host,prom_port)
+        i+=1
         if len(totalmemory)!=0 and len(totalidelcpu)!=0:
             print("getresources: "+str(i))
             break
     
     count=0
     listlen=min(len(totalmemory),len(totalidelcpu))
+    print(listlen)
     try:
         for node in range(0,listlen):
             if totalidelcpu[node]<0:
@@ -674,9 +675,10 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             # Get eligible clusters and their maximum capacity
             if mode == 'create':
                 maximum_replicas = getMaximumReplicas(cluster, app_cpu_request, app_memory_request)
-            elif mode == 'update':
-                maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
-            print(str(app_name)+maximum_replicas)
+            # elif mode == 'update':
+            #     maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
+            
+            print(str(app_name)+str(maximum_replicas))
             if maximum_replicas > 0:
                 dict = {}
                 dict['name'] = cluster
@@ -884,7 +886,7 @@ def deleteJob(cluster, fogapp_name, namespace):
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
 
 # while 1:
-#     getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
-#     getFogAppLocations("app_name2", "default", 100, 78, 1, 1, "worst-fit", "create")
-#     getFogAppLocations("app_name3", "default", 100, 78, 1, 1, "worst-fit", "create")
-#     getFogAppLocations("app_name4", "default", 100, 78, 1, 1, "worst-fit", "create")
+getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
+# getFogAppLocations("app_name2", "default", 100, 78, 1, 1, "worst-fit", "create")
+# getFogAppLocations("app_name3", "default", 100, 78, 1, 1, "worst-fit", "create")
+# getFogAppLocations("app_name4", "default", 100, 78, 1, 1, "worst-fit", "create")
