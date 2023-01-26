@@ -227,41 +227,44 @@ def getControllerMasterIPCluster(cluster):
 
 def getresources(mode,cluster,scrapetime,prom_host,prom_port):
     nodelist=[]
-    cp=getControllerMasterIPCluster(cluster)
-    prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
-    pc = PrometheusConnect(url=prom_url, disable_ssl=True)
-    if mode == "CPU" or mode == 'cpu':
-        query="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
-        # if scrapetime=="5s":
-        #     query="record5s{cluster_name=\"" + cluster + "\"}"
-        # elif scrapetime=="1m":
-        #     query="record60s{cluster_name=\"" + cluster + "\"}"
-        # else:
-        #     query="record5s{cluster_name=\"" + cluster + "\"}"
-        #print(query)
-        result = pc.custom_query(query=query)
-        if len(result) > 0:
-            for node in result:
-                #print(node)
-                ip=str(node['metric']['instance']).split(":")
-                if ip[0]!=cp:
-                    nodelist.append(float((node['value'][1]))-10)
+    try:
+        cp=getControllerMasterIPCluster(cluster)
+        prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
+        pc = PrometheusConnect(url=prom_url, disable_ssl=True)
+        if mode == "CPU" or mode == 'cpu':
+            query="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
+            # if scrapetime=="5s":
+            #     query="record5s{cluster_name=\"" + cluster + "\"}"
+            # elif scrapetime=="1m":
+            #     query="record60s{cluster_name=\"" + cluster + "\"}"
+            # else:
+            #     query="record5s{cluster_name=\"" + cluster + "\"}"
+            #print(query)
+            result = pc.custom_query(query=query)
+            if len(result) > 0:
+                for node in result:
+                    #print(node)
+                    ip=str(node['metric']['instance']).split(":")
+                    if ip[0]!=cp:
+                        nodelist.append(float((node['value'][1]))-10)
+            else:
+                nodelist.clear()
+        elif mode == "Memory" or mode == 'memory':
+            query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
+            #print(query)
+            result = pc.custom_query(query=query)
+            if len(result) > 0:
+                for node in result:
+                    #print(node)
+                    ip=str(node['metric']['instance']).split(":")
+                    if ip[0]!=cp:
+                        nodelist.append(float((node['value'][1]))-524288000)
+            else:
+                nodelist.clear()
         else:
-            nodelist.clear()
-    elif mode == "Memory" or mode == 'memory':
-        query="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
-        #print(query)
-        result = pc.custom_query(query=query)
-        if len(result) > 0:
-            for node in result:
-                #print(node)
-                ip=str(node['metric']['instance']).split(":")
-                if ip[0]!=cp:
-                    nodelist.append(float((node['value'][1]))-524288000)
-        else:
-            nodelist.clear()
-    else:
-        print("Please input cpu or Memory")
+            print("Please input cpu or Memory")
+    except:
+        print("quert error")
     
     return nodelist
 
@@ -289,7 +292,6 @@ def gettimeforquery(cluster,prom_host,prom_port):
         print("get scrape interval error")
         return 0
     scrapetime=str(int(scrapetime)*3)+str(unit)
-    #print(scrapetime)
     return scrapetime
 
 
@@ -316,10 +318,12 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     
     count=0
     listlen=min(len(totalmemory),len(totalidelcpu))
-
-    for node in range(0,listlen):
-        count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
-    
+    try:
+        for node in range(0,listlen):
+            count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
+    except:
+        count=0
+        
     print(str(cluster)+" "+"count: " + str(count))
 
     return count
