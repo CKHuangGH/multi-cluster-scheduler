@@ -246,7 +246,7 @@ def getresources(mode,cluster,scrapetime,prom_host,prom_port):
                     #print(node)
                     ip=str(node['metric']['instance']).split(":")
                     if ip[0]!=cp:
-                        nodelist.append(float((node['value'][1]))-10)
+                        nodelist.append(float((node['value'][1]))-15)
             else:
                 nodelist.clear()
         elif mode == "Memory" or mode == 'memory':
@@ -300,28 +300,42 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
     calcprecentage_cpu=0
     scrapetime=0
+    i=0
     while 1:
         calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
+        i+=1
+        print("error for clac count")
         if calcprecentage_cpu!=0:
+            print("clac: "+i)
             break
+    i=0
     while 1:
         prom_host = getControllerMasterIP()
         prom_port = 30090
         scrapetime=gettimeforquery(cluster,prom_host,prom_port)
+        i+=1
         if scrapetime!=0:
+            print("query: "+i)
             break
+    i=0
     while 1:
         totalmemory=getresources("memory",cluster,scrapetime,prom_host,prom_port)
         totalidelcpu=getresources("cpu",cluster,scrapetime,prom_host,prom_port)
         if len(totalmemory)!=0 and len(totalidelcpu)!=0:
+            print("getresources: "+i)
             break
     
     count=0
     listlen=min(len(totalmemory),len(totalidelcpu))
     try:
         for node in range(0,listlen):
+            if totalidelcpu[node]<0:
+                totalidelcpu[node]=0
+            if totalmemory[node]<0:
+                totalmemory[node]=0
             count += min(math.floor(totalidelcpu[node]/calcprecentage_cpu), math.floor((totalmemory[node]/1048576)/app_memory_request))
     except:
+        print("error for clac count")
         count=0
         
     print(str(cluster)+" "+"count: " + str(count))
@@ -662,7 +676,7 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
                 maximum_replicas = getMaximumReplicas(cluster, app_cpu_request, app_memory_request)
             elif mode == 'update':
                 maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
-
+            print(str(app_name)+maximum_replicas)
             if maximum_replicas > 0:
                 dict = {}
                 dict['name'] = cluster
