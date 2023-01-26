@@ -306,7 +306,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         i+=1
         print("error for clac count")
         if calcprecentage_cpu!=0:
-            print("clac: "+i)
+            print("clac: "+str(i))
             break
     i=0
     while 1:
@@ -315,14 +315,14 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         scrapetime=gettimeforquery(cluster,prom_host,prom_port)
         i+=1
         if scrapetime!=0:
-            print("query: "+i)
+            print("query: "+str(i))
             break
     i=0
     while 1:
         totalmemory=getresources("memory",cluster,scrapetime,prom_host,prom_port)
         totalidelcpu=getresources("cpu",cluster,scrapetime,prom_host,prom_port)
         if len(totalmemory)!=0 and len(totalidelcpu)!=0:
-            print("getresources: "+i)
+            print("getresources: "+str(i))
             break
     
     count=0
