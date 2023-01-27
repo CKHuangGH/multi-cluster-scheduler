@@ -883,7 +883,7 @@ def deleteJob(cluster, fogapp_name, namespace):
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
 
 # while 1:
-getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
+#getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
 # getFogAppLocations("app_name2", "default", 100, 78, 1, 1, "worst-fit", "create")
 # getFogAppLocations("app_name3", "default", 100, 78, 1, 1, "worst-fit", "create")
 # getFogAppLocations("app_name4", "default", 100, 78, 1, 1, "worst-fit", "create")
