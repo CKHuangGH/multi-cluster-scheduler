@@ -319,7 +319,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         totalidelcpu,totalmemory=getresources(cluster,scrapetime,prom_host,prom_port)
         i+=1
         print("getresources: "+str(i))
-        if len(totalmemory)==5 and len(totalidelcpu)==0:
+        if len(totalmemory)==5 and len(totalidelcpu)==5:
             break
     
     count=0
