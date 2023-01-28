@@ -1053,7 +1053,7 @@ def create_fn(body, spec, patch, **kwargs):
     if 'locations' in spec:
         placement_policy = 'cluster_affinity'
 
-    print("The provided placement policy is ..........", placement_policy)
+    #print("The provided placement policy is ..........", placement_policy)
 
     if 'numberOfLocations' in spec:
         clusters_qty = spec['numberOfLocations']
@@ -1086,7 +1086,7 @@ def create_fn(body, spec, patch, **kwargs):
                 eligible_clusters.append(dict)
                 total_overflow += cluster['overflow']
 
-            print("Total overflow ...........", total_overflow)
+            #print("Total overflow ...........", total_overflow)
 
             if total_overflow > 0:
                 for cluster in fogapp_locations[clusters_qty:]:
@@ -1110,8 +1110,8 @@ def create_fn(body, spec, patch, **kwargs):
                         cluster['replicas'] += total_overflow
                         total_overflow = 0
 
-            print("Final list of clusters .................", eligible_clusters)
-            print("Final overflow .................", total_overflow)
+            #print("Final list of clusters .................", eligible_clusters)
+            #print("Final overflow .................", total_overflow)
 
             if total_overflow > 0:
                 dict = {}
@@ -1133,7 +1133,7 @@ def create_fn(body, spec, patch, **kwargs):
         fogapp_locations = []
         for location in input_clusters:
             fogapp_locations.append(location.strip())
-        print("Input list of cluster ....", fogapp_locations)
+        #print("Input list of cluster ....", fogapp_locations)
         clusters_qty = len(fogapp_locations)
 
         if 'replicaOverrides' in spec:
@@ -1146,7 +1146,7 @@ def create_fn(body, spec, patch, **kwargs):
             elif isinstance(spec['replicaOverrides'], list):
                 replicas_list = spec['replicaOverrides']
 
-            print("Replica overrides ............", spec['replicaOverrides'])
+            #print("Replica overrides ............", spec['replicaOverrides'])
             for i in range(0, len(fogapp_locations)):
                 override_replicas[fogapp_locations[i]] = replicas_list[i]
         else:
@@ -1158,14 +1158,14 @@ def create_fn(body, spec, patch, **kwargs):
         for replica in list(override_replicas.values()):
             total_replicas += int(replica)
 
-        print("Total number of replicas .....", total_replicas)
+        #print("Total number of replicas .....", total_replicas)
 
         fog_only_clusters = []
         for cluster in fogapp_locations:
             if 'cloud' not in cluster:
                 fog_only_clusters.append(cluster)
 
-        print("Fog only clusters ..............", fog_only_clusters)
+        #print("Fog only clusters ..............", fog_only_clusters)
 
         # Compute cloud replicas
         cloud_replicas = 0
@@ -1178,7 +1178,7 @@ def create_fn(body, spec, patch, **kwargs):
         else:
             possible_clusters = []
 
-        print("Initial possible clusters list ............", possible_clusters)
+        #print("Initial possible clusters list ............", possible_clusters)
 
         # if node of the fog clusters have the right sized nodes
         if len(possible_clusters) == 0:
@@ -1198,7 +1198,7 @@ def create_fn(body, spec, patch, **kwargs):
                 patch.status['message'] = dict
                 raise kopf.TemporaryError("The application could not be scheduled on the Fog elevel. Need cloud cluster.",
                                       delay=30)
-            print("Initial eligible clusters and replicas 1111", eligible_clusters)
+            #print("Initial eligible clusters and replicas 1111", eligible_clusters)
         else:
             fogapp_locations.sort()
             possible_clusters.sort()
@@ -1236,7 +1236,7 @@ def create_fn(body, spec, patch, **kwargs):
             temp_list = []
             for cluster in eligible_clusters:
                 temp_list.append(cluster)
-            print("Possible list of clusters and oveflow ....", temp_list)
+            #print("Possible list of clusters and oveflow ....", temp_list)
 
             temp_list_2 = []
             for cluster in temp_list:
@@ -1255,11 +1255,11 @@ def create_fn(body, spec, patch, **kwargs):
                 nearest_clusters = []
                 overflow = cluster['overflow']
                 #leftover = overflow
-                print("Overflow from ", cluster, overflow)
+                #print("Overflow from ", cluster, overflow)
 
                 if overflow > 0:
                     nearest_clusters = findNearestClusters(cluster, temp_list_3)
-                    print("List of nearest clusters ....", nearest_clusters)
+                    #print("List of nearest clusters ....", nearest_clusters)
 
                 # Distribute overflow to nearest clusters
                 if len(nearest_clusters) > 0:
@@ -1267,7 +1267,7 @@ def create_fn(body, spec, patch, **kwargs):
                         # print("Overflow .................", overflow)
                         # if overflow > 0:
                         maximum_replicas[c] = getMaximumReplicas(c, fogapp_cpu_request, fogapp_memory_request)
-                        print("Maximum replicas .....", maximum_replicas)
+                        #print("Maximum replicas .....", maximum_replicas)
 
             for cluster in temp_list:
                 nearest_clusters = []
@@ -1306,7 +1306,7 @@ def create_fn(body, spec, patch, **kwargs):
                                  .agg({'replicas': 'sum', 'overflow': 'sum'})
                                  .to_dict('r'))
 
-            print("Preliminary list of eligible clusters ...", eligible_clusters)
+            #print("Preliminary list of eligible clusters ...", eligible_clusters)
 
             # Compute leftover to be deployed on cloud cluster
             leftover = 0
@@ -1324,7 +1324,7 @@ def create_fn(body, spec, patch, **kwargs):
                         dict['overflow'] = 0
                         eligible_clusters.append(dict)
                         leftover = 0
-                        print("Eligible clusters including cloud ...........", eligible_clusters)
+                        #print("Eligible clusters including cloud ...........", eligible_clusters)
 
             if len(eligible_clusters) == 0:
                 dict = {}
@@ -1344,7 +1344,7 @@ def create_fn(body, spec, patch, **kwargs):
                         dict['overflow'] = 0
                         eligible_clusters.append(dict)
                         leftover = 0
-                        print("Eligible clusters including cloud ...........", eligible_clusters)
+                        #print("Eligible clusters including cloud ...........", eligible_clusters)
                     else:
                         dict = {}
                         dict['message'] = 'to_cloud'
@@ -1358,7 +1358,7 @@ def create_fn(body, spec, patch, **kwargs):
         if cluster['replicas'] == 0:
             eligible_clusters.remove(cluster)
 
-    print("Final list of eligible clusters ...", eligible_clusters)
+    #print("Final list of eligible clusters ...", eligible_clusters)
 
     temp_list = []
     for cluster in eligible_clusters:
@@ -1367,7 +1367,7 @@ def create_fn(body, spec, patch, **kwargs):
     eligible_clusters = []
     eligible_replicas = []
 
-    print("Jobs temp list ,,,,,,,,,,,,,,,,,,", temp_list)
+    #print("Jobs temp list ,,,,,,,,,,,,,,,,,,", temp_list)
 
     for cluster in temp_list:
         eligible_clusters.append(cluster['name'])

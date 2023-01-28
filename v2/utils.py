@@ -294,7 +294,7 @@ def gettimeforquery(cluster,prom_host,prom_port):
 
 
 def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
-    print("Get the maximum number of replicas > 0 clusters can run ....")
+    #print("Get the maximum number of replicas > 0 clusters can run ....")
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
     calcprecentage_cpu=0
     scrapetime=0
@@ -302,7 +302,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     while 1:
         calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
         i+=1
-        print("clac: "+str(i))
+        #print("clac: "+str(i))
         if calcprecentage_cpu!=0:
             break
     i=0
@@ -311,20 +311,20 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         prom_port = 30090
         scrapetime=gettimeforquery(cluster,prom_host,prom_port)
         i+=1
-        print("query: "+str(i))
+        #print("query: "+str(i))
         if scrapetime!=0:
             break
     i=0
     while 1:
         totalidelcpu,totalmemory=getresources(cluster,scrapetime,prom_host,prom_port)
         i+=1
-        print("getresources: "+str(i))
+        #print("getresources: "+str(i))
         if len(totalmemory)==5 and len(totalidelcpu)==5:
             break
     
     count=0
     listlen=min(len(totalmemory),len(totalidelcpu))
-    print("listlen: "+str(listlen))
+    #print("listlen: "+str(listlen))
     try:
         for node in range(0,listlen):
             if totalidelcpu[node]<0:
