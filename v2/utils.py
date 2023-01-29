@@ -188,7 +188,7 @@ def checkClusterEligibility(cluster, app_cpu_request, app_memory_request, replic
     for node in available_resources_per_node:
         count += min(math.floor(node['cpu']/app_cpu_request), math.floor(node['memory']/app_memory_request))
 
-    print("Total number of replicas that can be scheduled ........... on", cluster, count)
+    #print("Total number of replicas that can be scheduled ........... on", cluster, count)
 
     #if count > replicas:
     if count > replicas:
@@ -336,7 +336,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         print("error for clac count")
         count=0
         
-    print(str(cluster)+" "+"count: " + str(count))
+    #print(str(cluster)+" "+"count: " + str(count))
 
     return count
 
