@@ -101,8 +101,8 @@ def create_fn(body, spec, patch, **kwargs):
                         cluster['replicas'] += total_overflow
                         total_overflow = 0
 
-            print("Final list of clusters .................", eligible_clusters)
-            print("Final overflow .................", total_overflow)
+            #print("Final list of clusters .................", eligible_clusters)
+            #print("Final overflow .................", total_overflow)
 
             if total_overflow > 0:
                 dict = {}

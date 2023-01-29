@@ -645,14 +645,14 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
     # TO DO get all federation clusters except cloud
     all_clusters = get_all_federation_clusters()
 
-    print("List of all clusters ................", all_clusters)
+    #print("List of all clusters ................", all_clusters)
 
     fog_only_clusters = []
     for cluster in all_clusters:
         if 'cloud' not in cluster:
             fog_only_clusters.append(cluster)
 
-    print("Fog - only clusters .....", fog_only_clusters)
+    #print("Fog - only clusters .....", fog_only_clusters)
 
     cluster_network_receive = {}
 
@@ -660,7 +660,7 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
     for cluster in fog_only_clusters:
         if checkClusterPossibility(cluster, app_cpu_request, app_memory_request) == True:
             possible_clusters.append(cluster)
-    print("List of possible clusters ..............", possible_clusters)
+    #print("List of possible clusters ..............", possible_clusters)
 
     eligible_clusters = []
     if len(possible_clusters) == 0:
@@ -675,14 +675,14 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
             # elif mode == 'update':
             #     maximum_replicas = getAllocatableCapacity(cluster, app_cpu_request, app_memory_request, app_name, app_namespace)
             
-            print(str(app_name)+str(maximum_replicas))
+            #print(str(app_name)+str(maximum_replicas))
             if maximum_replicas > 0:
                 dict = {}
                 dict['name'] = cluster
                 dict['max_replicas'] = maximum_replicas
                 eligible_clusters.append(dict)
 
-    print("List of Eligible clusters ..............", eligible_clusters)
+    #print("List of Eligible clusters ..............", eligible_clusters)
 
     if len(eligible_clusters) == 0:
         fogapp_locations = []
@@ -728,7 +728,7 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
         elif placement_policy == 'best_fit' or placement_policy == 'best-fit':
             sorted_eligible_clusters = sorted(eligible_clusters, key=lambda i: i['max_replicas'])
 
-        print("List of sorted traffic and policy ....", sorted_eligible_clusters)
+        #print("List of sorted traffic and policy ....", sorted_eligible_clusters)
 
         fogapp_locations = []
 
@@ -751,7 +751,7 @@ def getFogAppLocations(app_name, app_namespace, app_cpu_request, app_memory_requ
                 dict['max_replicas'] = replicas
                 fogapp_locations.append(dict)
 
-        print("Final list of clusters which will host the app in the Default case ....", fogapp_locations)
+        #print("Final list of clusters which will host the app in the Default case ....", fogapp_locations)
 
         #fogapp_locations = fogapp_locations[:clusters_qty]
         f=open("logs.csv","a")
