@@ -337,7 +337,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         print("error for clac count")
         count=0
         
-    print(str(cluster)+" "+"count: " + str(count)+" "+str(time.time))
+    print(str(cluster)+" "+"count: " + str(count)+" "+str(time.time()))
 
     return count
 
