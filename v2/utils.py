@@ -303,7 +303,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     while 1:
         calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
         i+=1
-        print("clac: "+str(i)+":"+str(time.time))
+        print("clac: "+str(i)+":"+str(time.time()))
         if calcprecentage_cpu!=0:
             break
     i=0
