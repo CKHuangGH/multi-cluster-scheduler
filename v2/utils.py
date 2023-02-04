@@ -9,6 +9,7 @@ import os
 import math
 import pandas as pd
 import requests
+import time
 
 # Load k8s contexts
 config.load_kube_config()
@@ -302,7 +303,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     while 1:
         calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
         i+=1
-        #print("clac: "+str(i))
+        print("clac: "+str(i)+":"+str(time.time))
         if calcprecentage_cpu!=0:
             break
     i=0
@@ -336,7 +337,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         print("error for clac count")
         count=0
         
-    #print(str(cluster)+" "+"count: " + str(count))
+    print(str(cluster)+" "+"count: " + str(count)+" "+str(time.time))
 
     return count
 
