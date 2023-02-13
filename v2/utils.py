@@ -310,8 +310,8 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     while 1:
         prom_host = getControllerMasterIP()
         prom_port = 30090
-        #scrapetime=gettimeforquery(cluster,prom_host,prom_port)
-        scrapetime="3m"
+        scrapetime=gettimeforquery(cluster,prom_host,prom_port)
+        #scrapetime="3m"
         #print(scrapetime,scrapetime1)
         i+=1
         #print("query: "+str(i))
