@@ -248,7 +248,7 @@ def getresources(cluster,prom_host,prom_port):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    nodelistcpu.append(float((node['value'][1])))
+                    nodelistcpu.append(float((node['value'][1]))-15)
         else:
             nodelistcpu.clear()
 
@@ -260,7 +260,7 @@ def getresources(cluster,prom_host,prom_port):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    nodelistram.append(float((node['value'][1])))
+                    nodelistram.append(float((node['value'][1]))-524288000)
         else:
             nodelistram.clear()
     except:
