@@ -226,14 +226,15 @@ def getControllerMasterIPCluster(cluster):
 
     return master_ip
 
-def getresources(cluster,scrapetime,prom_host,prom_port):
+def getresources(cluster,prom_host,prom_port):
     nodelistcpu=[]
     nodelistram=[]
     try:
         cp=getControllerMasterIPCluster(cluster)
         prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
         pc = PrometheusConnect(url=prom_url, disable_ssl=True)
-        querycpu="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
+        #querycpu="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
+        querycpu="record5s{cluster_name=\"" + cluster + "\"}"
         # if scrapetime=="5s":
         #     query="record5s{cluster_name=\"" + cluster + "\"}"
         # elif scrapetime=="1m":
@@ -247,7 +248,7 @@ def getresources(cluster,scrapetime,prom_host,prom_port):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    nodelistcpu.append(float((node['value'][1]))-15)
+                    nodelistcpu.append(float((node['value'][1])))
         else:
             nodelistcpu.clear()
 
@@ -259,12 +260,13 @@ def getresources(cluster,scrapetime,prom_host,prom_port):
                 #print(node)
                 ip=str(node['metric']['instance']).split(":")
                 if ip[0]!=cp:
-                    nodelistram.append(float((node['value'][1]))-524288000)
+                    nodelistram.append(float((node['value'][1])))
         else:
             nodelistram.clear()
     except:
         print("quert error")
     
+    #print(nodelistcpu,nodelistram)
     return nodelistcpu,nodelistram
 
 def gettimeforquery(cluster,prom_host,prom_port):
@@ -298,7 +300,6 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     #print("Get the maximum number of replicas > 0 clusters can run ....")
     node_resources_cpu, node_resources_memory=getPerNodeResources(cluster)
     calcprecentage_cpu=0
-    scrapetime=0
     i=0
     while 1:
         calcprecentage_cpu=(app_cpu_request/node_resources_cpu)*100
@@ -307,19 +308,22 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         if calcprecentage_cpu!=0:
             break
     i=0
+    #print(calcprecentage_cpu)
+    # while 1:
+    #     prom_host = getControllerMasterIP()
+    #     prom_port = 30090
+    #     scrapetime=gettimeforquery(cluster,prom_host,prom_port)
+    #     #scrapetime="3m"
+    #     #print(scrapetime,scrapetime1)
+    #     i+=1
+    #     #print("query: "+str(i))
+    #     if scrapetime!=0:
+    #         break
+    i=0
     while 1:
         prom_host = getControllerMasterIP()
         prom_port = 30090
-        scrapetime=gettimeforquery(cluster,prom_host,prom_port)
-        #scrapetime="3m"
-        #print(scrapetime,scrapetime1)
-        i+=1
-        #print("query: "+str(i))
-        if scrapetime!=0:
-            break
-    i=0
-    while 1:
-        totalidelcpu,totalmemory=getresources(cluster,scrapetime,prom_host,prom_port)
+        totalidelcpu,totalmemory=getresources(cluster,prom_host,prom_port)
         i+=1
         #print("getresources: "+str(i))
         if len(totalmemory)==5 and len(totalidelcpu)==5:
@@ -886,7 +890,7 @@ def deleteJob(cluster, fogapp_name, namespace):
         print("Connection timeout after " + str(timeout) + " seconds when deleting Job from " + cluster)
 
 # while 1:
-#getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
+# getFogAppLocations("app_name", "default", 400, 878, 1, 1, "worst-fit", "create")
 # getFogAppLocations("app_name2", "default", 100, 78, 1, 1, "worst-fit", "create")
 # getFogAppLocations("app_name3", "default", 100, 78, 1, 1, "worst-fit", "create")
 # getFogAppLocations("app_name4", "default", 100, 78, 1, 1, "worst-fit", "create")
