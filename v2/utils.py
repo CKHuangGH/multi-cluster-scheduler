@@ -307,7 +307,6 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
         print("clac: "+str(i)+":"+str(time.time()))
         if calcprecentage_cpu!=0:
             break
-    i=0
     #print(calcprecentage_cpu)
     # while 1:
     #     prom_host = getControllerMasterIP()
@@ -319,16 +318,10 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     #     #print("query: "+str(i))
     #     if scrapetime!=0:
     #         break
-    i=0
-    while 1:
-        prom_host = getControllerMasterIP()
-        prom_port = 30090
-        totalidelcpu,totalmemory=getresources(cluster,prom_host,prom_port)
-        i+=1
-        #print("getresources: "+str(i))
-        if len(totalmemory)==5 and len(totalidelcpu)==5:
-            break
-    
+    prom_host = getControllerMasterIP()
+    prom_port = 30090
+    totalidelcpu,totalmemory=getresources(cluster,prom_host,prom_port)
+
     count=0
     listlen=min(len(totalmemory),len(totalidelcpu))
     #print("listlen: "+str(listlen))
