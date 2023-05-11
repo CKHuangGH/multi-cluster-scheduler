@@ -234,7 +234,7 @@ def getresources(cluster,prom_host,prom_port):
         prom_url = "http://" + str(prom_host) + ":" + str(prom_port)
         pc = PrometheusConnect(url=prom_url, disable_ssl=True)
         #querycpu="((sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\",mode=\"idle\"}["+str(scrapetime)+"]))by (instance))/(sum(increase(node_cpu_seconds_total{cluster_name=\"" + cluster + "\"}["+str(scrapetime)+"]))by (instance)))*100"
-        querycpu="record5s{job=\"" + cluster + "\"}"
+        querycpu="record5s{cluster_name=\"" + cluster + "\"}"
         # if scrapetime=="5s":
         #     query="record5s{cluster_name=\"" + cluster + "\"}"
         # elif scrapetime=="1m":
@@ -252,7 +252,7 @@ def getresources(cluster,prom_host,prom_port):
         else:
             nodelistcpu.clear()
 
-        queryram="node_memory_MemAvailable_bytes{job=\"" + cluster+ "\"}"
+        queryram="node_memory_MemAvailable_bytes{cluster_name=\"" + cluster+ "\"}"
         #print(query)
         resultram = pc.custom_query(query=queryram)
         if len(resultram) > 0:
@@ -321,7 +321,7 @@ def getMaximumReplicas(cluster, app_cpu_request, app_memory_request):
     prom_host = getControllerMasterIP()
     prom_port = 30090
     totalidelcpu,totalmemory=getresources(cluster,prom_host,prom_port)
-    
+
     count=0
     listlen=min(len(totalmemory),len(totalidelcpu))
     #print("listlen: "+str(listlen))
