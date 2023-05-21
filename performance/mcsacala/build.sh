@@ -1,3 +1,3 @@
-docker build -t chuangtw/mcsv2after .
+docker build -t chuangtw/mcsacala .
 docker login
-docker push chuangtw/mcsv2after
+docker push chuangtw/mcsacala
